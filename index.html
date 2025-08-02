@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Smart Cafe</title>
+  <link rel="stylesheet" href="cafe.css" />
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+    }
+
+    .container {
+      max-width: 800px;
+      margin: auto;
+    }
+
+    .menu {
+      margin-top: 20px;
+    }
+
+    .item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid #ccc;
+      padding: 10px 0;
+    }
+
+    .item span {
+      margin-right: 10px;
+    }
+
+    .item button {
+      background-color: #4CAF50;
+      border: none;
+      color: white;
+      padding: 6px 12px;
+      cursor: pointer;
+      border-radius: 5px;
+    }
+
+    .item button:hover {
+      background-color: #45a049;
+    }
+
+    .cart {
+      margin-top: 30px;
+      text-align: center;
+    }
+
+    .cart button {
+      background-color: #2196F3;
+      border: none;
+      color: white;
+      padding: 10px 20px;
+      font-size: 16px;
+      margin: 5px;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+
+    .cart button:hover {
+      background-color: #0b7dda;
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    .payment, .status {
+      text-align: center;
+    }
+
+    .steps {
+      list-style: none;
+      padding: 0;
+      display: flex;
+      justify-content: space-around;
+      margin: 20px 0;
+    }
+
+    .steps li {
+      padding: 10px;
+      border-bottom: 2px solid #ccc;
+    }
+
+    .steps li.active {
+      border-bottom: 2px solid green;
+      font-weight: bold;
+    }
+
+    .cancel {
+      background-color: #f44336 !important;
+    }
+
+    #orderSummary {
+      margin: 20px auto;
+      max-width: 400px;
+      text-align: left;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      padding: 15px;
+      background-color: #f9f9f9;
+    }
+
+    #orderSummary h3 {
+      margin-top: 0;
+    }
+
+    #orderSummary ul {
+      padding-left: 20px;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Main Menu Page -->
+  <div class="container" id="menuPage">
+    <h1>SMART CAFE</h1>
+    <p>Select items from the menu</p>
+
+    <div class="menu">
+      <h2>MENU</h2>
+
+      <div class="item">
+        <span>☕ Chai - $3.50</span>
+        <button onclick="addToCart('Chai', 3.5)">Add to Cart</button>
+      </div>
+      <div class="item">
+        <span>☕️ Coffee - $2.50</span>
+        <button onclick="addToCart('Coffee', 2.5)">Add to Cart</button>
+      </div>
+      <div class="item">
+        <span>🌭 Hotdog - $2.00</span>
+        <button onclick="addToCart('Hotdog', 2.0)">Add to Cart</button>
+      </div>
+      <div class="item">
+        <span>🍩 Donut - $2.00</span>
+        <button onclick="addToCart('Donut', 2.0)">Add to Cart</button>
+      </div>
+      <div class="item">
+        <span>🍕 Pizza - $2.00</span>
+        <button onclick="addToCart('Pizza', 2.0)">Add to Cart</button>
+      </div>
+      <div class="item">
+        <span>🍔 Burger - $2.00</span>
+        <button onclick="addToCart('Burger', 2.0)">Add to Cart</button>
+      </div>
+      <div class="item">
+        <span>🧁 Ice Cream - $2.50</span>
+        <button onclick="addToCart('Ice Cream', 2.5)">Add to Cart</button>
+      </div>
+    </div>
+
+    <div class="cart">
+      <p id="cartInfo">Cart: $0.00</p>
+      <button onclick="goToPayment()">Order</button>
+    </div>
+  </div>
+
+  <!-- Payment Page -->
+  <div class="payment hidden" id="paymentPage">
+    <h2>PAYMENT</h2>
+
+    <!-- Order Summary -->
+    <div id="orderSummary">
+      <h3>Your Order:</h3>
+      <ul id="summaryList"></ul>
+      <p><strong>Total: $<span id="summaryTotal">0.00</span></strong></p>
+    </div>
+
+    <button onclick="confirmOrder()">💳 Credit / Debit Card</button>
+    <button onclick="confirmOrder()">📲 UPI</button>
+    <button onclick="confirmOrder()">💵 Cash</button>
+    <button class="cancel" onclick="goBack()">Cancel</button>
+  </div>
+
+  <!-- Order Status Page -->
+  <div class="status hidden" id="statusPage">
+    <h2>Order Status</h2>
+    <ul class="steps">
+      <li class="active">Order Received</li>
+      <li>Preparing</li>
+      <li>Ready</li>
+      <li>Completed</li>
+    </ul>
+    <button onclick="goHome()">Back to Menu</button>
+  </div>
+
+  <script>
+    let cart = [];
+    let total = 0;
+
+    function addToCart(item, price) {
+      cart.push({ item, price });
+      total += price;
+      document.getElementById('cartInfo').innerText = `Cart: $${total.toFixed(2)}`;
+    }
+
+    function goToPayment() {
+      document.getElementById('menuPage').classList.add('hidden');
+      document.getElementById('paymentPage').classList.remove('hidden');
+
+      // Update order summary
+      const summaryList = document.getElementById('summaryList');
+      const summaryTotal = document.getElementById('summaryTotal');
+      summaryList.innerHTML = '';
+      cart.forEach(entry => {
+        const li = document.createElement('li');
+        li.textContent = `${entry.item} - $${entry.price.toFixed(2)}`;
+        summaryList.appendChild(li);
+      });
+      summaryTotal.textContent = total.toFixed(2);
+    }
+
+    function goBack() {
+      document.getElementById('paymentPage').classList.add('hidden');
+      document.getElementById('menuPage').classList.remove('hidden');
+    }
+
+    function confirmOrder() {
+      document.getElementById('paymentPage').classList.add('hidden');
+      document.getElementById('statusPage').classList.remove('hidden');
+
+      const steps = document.querySelectorAll('.steps li');
+      let step = 1;
+      const interval = setInterval(() => {
+        if (step < steps.length) {
+          steps[step].classList.add('active');
+          step++;
+        } else {
+          clearInterval(interval);
+        }
+      }, 2000);
+    }
+
+    function goHome() {
+      cart = [];
+      total = 0;
+      document.getElementById('cartInfo').innerText = 'Cart: $0.00';
+      document.getElementById('summaryList').innerHTML = '';
+      document.getElementById('summaryTotal').textContent = '0.00';
+      document.querySelectorAll('.steps li').forEach((li, i) => {
+        if (i === 0) {
+          li.classList.add('active');
+        } else {
+          li.classList.remove('active');
+        }
+      });
+      document.getElementById('statusPage').classList.add('hidden');
+      document.getElementById('menuPage').classList.remove('hidden');
+    }
+  </script>
+</body>
+</html>
